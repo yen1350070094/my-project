@@ -1,0 +1,94 @@
+@model MilkTeaShop.Models.Banner
+
+@{
+    ViewData["Title"] = "Thêm Banner";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-success"></i>Thêm Banner mới</h5>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control rounded-3" placeholder="Ví dụ: Khuyến mãi hè 2025" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea asp-for="Description" class="form-control rounded-3" rows="2"
+                                  placeholder="Nội dung phụ hiển thị trên banner"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ảnh banner</label>
+                        <input type="file" name="imageFile" class="form-control rounded-3"
+                               accept="image/*" onchange="previewImage(this)" />
+                        <div class="mt-2" id="imgPreview" style="display:none;">
+                            <img id="previewImg" src="#" alt="Preview"
+                                 style="max-height:160px;border-radius:10px;object-fit:cover;" />
+                        </div>
+                        <div class="form-text">Khuyên dùng ảnh ngang 1920×600px, định dạng JPG/PNG/WEBP</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Hoặc nhập URL ảnh</label>
+                        <input asp-for="ImageUrl" class="form-control rounded-3"
+                               placeholder="https://... (bỏ trống nếu đã chọn file)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Link khi click</label>
+                        <input asp-for="LinkUrl" class="form-control rounded-3"
+                               placeholder="Ví dụ: /Home/Index hoặc https://..." />
+                        <div class="form-text">Để trống nếu banner không cần link</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Thứ tự hiển thị</label>
+                            <input asp-for="DisplayOrder" type="number" class="form-control rounded-3"
+                                   min="0" placeholder="0" />
+                            <div class="form-text">Số nhỏ hơn hiển thị trước</div>
+                        </div>
+                        <div class="col-md-6 mb-3 d-flex align-items-end">
+                            <div class="form-check form-switch mb-3">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox"
+                                       role="switch" checked />
+                                <label asp-for="IsActive" class="form-check-label fw-semibold">Hiển thị ngay</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-success rounded-pill px-4">
+                            <i class="bi bi-check-lg me-1"></i> Lưu banner
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imgPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

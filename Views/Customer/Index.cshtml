@@ -1,0 +1,49 @@
+@model IEnumerable<MilkTeaShop.Models.Customer>
+@{
+    ViewData["Title"] = "Khách hàng";
+}
+<div class="container py-4">
+    <h3 class="fw-bold mb-4">Quản lý khách hàng</h3>
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">#</th>
+                        <th>Họ tên</th>
+                        <th>Điện thoại</th>
+                        <th>Email</th>
+                        <th>Điểm tích lũy</th>
+                        <th>Số đơn</th>
+                        <th>Ngày đăng ký</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int i = 1;
+                    }
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">@i++</td>
+                            <td class="fw-bold">@c.FullName</td>
+                            <td>@c.Phone</td>
+                            <td class="text-muted">@(c.Email ?? "")</td>
+                            <td><span class="badge bg-warning text-dark">@c.LoyaltyPoints điểm</span></td>
+                            <td>@c.Orders.Count đơn</td>
+                            <td><small class="text-muted">@c.CreatedAt.ToString("dd/MM/yyyy")</small></td>
+                            <td><a href="/Customer/Details/@c.Id" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">Chưa có khách hàng</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

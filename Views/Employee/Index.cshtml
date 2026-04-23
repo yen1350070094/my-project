@@ -1,0 +1,112 @@
+@model IEnumerable<MilkTeaShop.Models.Employee>
+@{
+    ViewData["Title"] = "Quản lý nhân viên";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Quản lý nhân viên</h3>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-success rounded-pill px-4">
+            + Thêm nhân viên mới
+        </a>
+    }
+</div>
+
+<div class="card shadow-sm border-0 rounded-3">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">#</th>
+                    <th>Họ tên & Vai trò</th>
+                    <th>Chức vụ</th>
+                    <th>Liên hệ</th>
+                    <th>Lương/giờ</th>
+                    <th>Ngày vào làm</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int i = 1;
+                }
+                @foreach (var e in Model)
+                {
+                    @* Kiểm tra null an toàn cho e.User *@
+                    var isActive = e.User?.IsActive ?? false;
+
+                    <tr class="@(!isActive ? "table-secondary opacity-75" : "")">
+                        <td class="ps-4 text-muted">@i++</td>
+                        <td>
+                            <div>
+                                <div class="fw-bold @(!isActive ? "text-muted" : "")">
+                                    @(e.User?.FullName ?? "N/A")
+                                </div>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle small">
+                                    @(e.User?.Role?.Name ?? "Chưa rõ")
+                                </span>
+                            </div>
+                        </td>
+                        <td><span class="text-dark">@e.Position</span></td>
+                        <td>
+                            <div class="small text-muted">@e.User?.Email</div>
+                            <div class="small fw-medium">@e.User?.Phone</div>
+                        </td>
+                        <td class="fw-bold text-success">@e.HourlySalary.ToString("N0") đ</td>
+                        <td><small class="text-muted">@e.HireDate.ToString("dd/MM/yyyy")</small></td>
+                        <td class="text-center">
+                            @if (isActive)
+                            {
+                                <span class="badge bg-success">Đang làm việc</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Ngừng hoạt động</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a asp-action="Schedule" asp-route-id="@e.Id"
+                                   class="btn btn-sm btn-outline-primary" title="Xem lịch làm việc">Lịch</a>
+
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@e.Id"
+                                       class="btn btn-sm btn-outline-secondary" title="Sửa thông tin">Sửa</a>
+
+                                    <form asp-action="ToggleActive" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@e.Id" />
+                                        @if (isActive)
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Vô hiệu hóa">Khóa</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Kích hoạt">Mở</button>
+                                        }
+                                    </form>
+
+                                    <form asp-action="Delete" method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhân viên @(e.User?.FullName)?')">
+                                        <input type="hidden" name="id" value="@e.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa vĩnh viễn">Xóa</button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            Không tìm thấy dữ liệu nhân viên nào trong hệ thống.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

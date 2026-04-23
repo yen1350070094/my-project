@@ -1,0 +1,160 @@
+@{
+    ViewData["Title"] = "Dashboard - Doanh thu";
+}
+
+<h3 class="fw-bold mb-4">Báo cáo doanh thu</h3>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="card stat-card bg-success text-white p-3 text-center shadow-sm">
+            <div class="fs-6 opacity-75">Doanh thu hôm nay</div>
+            <div class="fs-4 fw-bold">@((ViewBag.DoanhThuHomNay as decimal? ?? 0).ToString("N0")) đ</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card stat-card bg-primary text-white p-3 text-center shadow-sm">
+            <div class="fs-6 opacity-75">Doanh thu tháng này</div>
+            <div class="fs-4 fw-bold">@((ViewBag.DoanhThuThangNay as decimal? ?? 0).ToString("N0")) đ</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card stat-card bg-warning text-dark p-3 text-center shadow-sm">
+            <div class="fs-6 opacity-75">Tổng doanh thu</div>
+            <div class="fs-4 fw-bold">@((ViewBag.TongDoanhThu as decimal? ?? 0).ToString("N0")) đ</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card stat-card bg-info text-white p-3 text-center shadow-sm">
+            <div class="fs-6 opacity-75">Đơn chờ xử lý</div>
+            <div class="fs-4 fw-bold">@ViewBag.DonChoXuLy</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-6">
+        <div class="card border-0 shadow-sm p-3 text-center">
+            <div class="text-muted small">Tổng đơn hàng</div>
+            <div class="fs-3 fw-bold text-success">@ViewBag.TongDon</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-6">
+        <div class="card border-0 shadow-sm p-3 text-center">
+            <div class="text-muted small">Khách hàng</div>
+            <div class="fs-3 fw-bold text-primary">@ViewBag.TongKhachHang</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-6">
+        <div class="card border-0 shadow-sm p-3 text-center">
+            <div class="text-muted small">SP hết hàng</div>
+            <div class="fs-3 fw-bold text-danger">@ViewBag.HetHang / @ViewBag.TongSanPham</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm p-4">
+            <h6 class="fw-bold mb-3">Doanh thu 7 ngày gần nhất</h6>
+            <canvas id="revenueChart" height="120"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h6 class="fw-bold mb-3">Top sản phẩm bán chạy</h6>
+            @{
+                var tops = ViewBag.TopProducts as dynamic;
+            }
+            @if (tops != null)
+            {
+                int rank = 1;
+                foreach (var t in tops)
+                {
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>
+                            <span class="badge bg-secondary me-1">@rank++</span>
+                            @t.Name
+                        </span>
+                        <span class="badge bg-success">@t.Count ly</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-bold border-0 pt-3">Đơn hàng gần nhất</div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th class="ps-4">Mã đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Thời gian</th></tr>
+            </thead>
+            <tbody>
+                @{
+                    var recent = ViewBag.RecentOrders as IEnumerable<MilkTeaShop.Models.Order>;
+                }
+                @if (recent != null)
+                {
+                    foreach (var o in recent)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-success small">@o.OrderCode</td>
+                            <td>@o.Customer?.FullName</td>
+                            <td class="fw-bold">@o.TotalAmount.ToString("N0") đ</td>
+                            <td>
+                                <span class="badge @(o.PaymentStatus == "Paid" ? "bg-success" : "bg-secondary")">
+                                    @(o.PaymentStatus == "Paid" ? "Đã TT" : "Chưa TT")
+                                </span>
+                            </td>
+                            <td>
+                                @{
+                                    var badge = o.Status switch
+                                    {
+                                        "Pending" => "bg-warning text-dark",
+                                        "Processing" => "bg-primary",
+                                        "Completed" => "bg-success",
+                                        _ => "bg-secondary"
+                                    };
+                                    var label = o.Status switch
+                                    {
+                                        "Pending" => "Chờ xử lý",
+                                        "Processing" => "Đang làm",
+                                        "Completed" => "Hoàn thành",
+                                        _ => o.Status
+                                    };
+                                }
+                                <span class="badge @badge">@label</span>
+                            </td>
+                            <td><small class="text-muted">@o.OrderedAt.ToString("dd/MM HH:mm")</small></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(ViewBag.ChartLabels)],
+                datasets: [{
+                    label: 'Doanh thu (đ)',
+                    data: [@ViewBag.ChartData],
+                    backgroundColor: 'rgba(25,135,84,0.7)',
+                    borderColor: 'rgba(25,135,84,1)',
+                    borderWidth: 1, borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('vi-VN') + 'đ' } } }
+            }
+        });
+    </script>
+}

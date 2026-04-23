@@ -1,0 +1,111 @@
+@model MilkTeaShop.ViewModels.CreateEmployeeViewModel
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+}
+
+<div class="card shadow-sm border-0 rounded-3" style="max-width:640px;margin:0 auto">
+    <div class="card-header bg-white border-0 pt-4 fw-bold">
+        Thêm nhân viên mới
+    </div>
+    <div class="card-body px-4 pb-4">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <h6 class="fw-bold text-success mb-3">Thông tin cá nhân</h6>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="FullName" class="form-control" placeholder="Họ tên" />
+                        <label asp-for="FullName">Họ và tên</label>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="SĐT" />
+                        <label asp-for="Phone">Số điện thoại</label>
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Email" class="form-control" placeholder="Email" />
+                <label asp-for="Email">Email đăng nhập</label>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <hr class="my-3">
+            <h6 class="fw-bold text-success mb-3">Thông tin công việc</h6>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Vai trò</label>
+                    <select asp-for="RoleId" class="form-select" required>
+                        <option value="">-- Chọn vai trò --</option>
+                        @foreach (var r in ViewBag.Roles as IEnumerable<MilkTeaShop.Models.Role> ?? new List<MilkTeaShop.Models.Role>())
+                        {
+                            <option value="@r.Id">@r.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Chức vụ</label>
+                    <select asp-for="Position" class="form-select">
+                        <option value="Cashier">Thu ngân</option>
+                        <option value="Barista">Pha chế</option>
+                        <option value="Manager">Quản lý</option>
+                        <option value="Shipper">Giao hàng</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="HourlySalary" type="number" class="form-control" placeholder="Lương/giờ" />
+                        <label asp-for="HourlySalary">Lương/giờ (đ)</label>
+                        <span asp-validation-for="HourlySalary" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="HireDate" type="date" class="form-control"
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <label asp-for="HireDate">Ngày vào làm</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-3">
+            <h6 class="fw-bold text-success mb-3">Mật khẩu đăng nhập</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="Password" class="form-control" placeholder="Mật khẩu" />
+                        <label asp-for="Password">Mật khẩu</label>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Xác nhận" />
+                        <label asp-for="ConfirmPassword">Xác nhận mật khẩu</label>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold flex-grow-1">
+                    Thêm nhân viên
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

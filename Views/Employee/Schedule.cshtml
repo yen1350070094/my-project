@@ -1,0 +1,104 @@
+@model MilkTeaShop.Models.Employee
+@{
+    ViewData["Title"] = "Lịch làm - " + Model.User?.FullName;
+    var shifts = ViewBag.Shifts as IEnumerable<MilkTeaShop.Models.Shift> ?? new List<MilkTeaShop.Models.Shift>();
+}
+<div class="container py-4">
+    <a href="/Employee" class="btn btn-link text-decoration-none text-muted mb-3">Danh sách</a>
+    <h3 class="fw-bold mb-4">Lịch làm việc  @Model.User?.FullName</h3>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h6 class="fw-bold mb-3">Thêm ca làm</h6>
+                <form asp-action="AddSchedule" method="post">
+                    <input type="hidden" name="EmployeeId" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label class="form-label">Ca làm</label>
+                        <select name="ShiftId" class="form-select" required>
+                            @foreach (var s in shifts)
+                            {
+                                <option value="@s.Id">@s.Name (@s.StartTime-@s.EndTime)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày làm</label>
+                        <input type="date" name="WorkDate" class="form-control" required
+                               value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Thêm ca</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Ngày</th>
+                                <th>Ca</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ws in Model.WorkSchedules.OrderByDescending(w => w.WorkDate))
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold">@ws.WorkDate.ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-primary">@ws.Shift?.Name</span></td>
+                                    <td>
+                                        @if (ws.CheckIn.HasValue)
+                                        {
+                                            <span class="text-success">@ws.CheckIn.Value.ToString("HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted"></span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (ws.CheckOut.HasValue)
+                                        {
+                                            <span class="text-danger">@ws.CheckOut.Value.ToString("HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted"></span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!ws.CheckIn.HasValue)
+                                        {
+                                            <form asp-action="CheckIn" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@ws.Id" />
+                                                <button class="btn btn-sm btn-outline-success">Check-in</button>
+                                            </form>
+                                        }
+                                        else if (!ws.CheckOut.HasValue)
+                                        {
+                                            <form asp-action="CheckOut" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@ws.Id" />
+                                                <button class="btn btn-sm btn-outline-danger">Check-out</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.WorkSchedules.Any())
+                            {
+                                <tr><td colspan="5" class="text-center py-4 text-muted">Chưa có lịch làm</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

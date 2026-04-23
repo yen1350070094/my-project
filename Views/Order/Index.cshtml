@@ -1,0 +1,169 @@
+@model IEnumerable<MilkTeaShop.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    var orders = Model.ToList();
+    var tongDon = orders.Count;
+    var tongThu = orders.Where(o => o.PaymentStatus == "Paid").Sum(o => o.TotalAmount);
+    var choXuLy = orders.Count(o => o.Status == "Pending");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Quản lý đơn hàng</h3>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 text-center rounded-3">
+            <div class="text-muted small">Tổng đơn</div>
+            <div class="fs-2 fw-bold text-success">@tongDon</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 text-center rounded-3">
+            <div class="text-muted small">Chờ xử lý</div>
+            <div class="fs-2 fw-bold text-warning">@choXuLy</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 text-center rounded-3">
+            <div class="text-muted small">Doanh thu</div>
+            <div class="fs-4 fw-bold text-primary">@tongThu.ToString("N0") đ</div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-3">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Sản phẩm</th>
+                    <th>Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                    <th class="text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in orders)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-success small">@o.OrderCode</td>
+
+                        <td>
+                            <div class="fw-bold">@o.Customer?.FullName</div>
+                            <small class="text-muted">@o.Customer?.Phone</small>
+                        </td>
+
+                        <td class="small">
+                            @foreach (var item in o.OrderItems)
+                            {
+                                var tNames2 = string.Join(", ", item.OrderItemToppings.Select(t => t.Topping!.Name));
+
+                                <div class="mb-1">
+                                    @item.Product?.Name (@item.ProductSize?.SizeName) x@item.Quantity
+                                    <br>
+                                    <span class="text-muted">
+                                        Đường: @item.SugarLevel?.Label | Đá: @item.IceLevel?.Label
+                                    </span>
+
+                                    @if (item.OrderItemToppings.Any())
+                                    {
+                                        <br>
+                                        <span class="text-muted small">+ @tNames2</span>
+                                    }
+                                </div>
+                            }
+                        </td>
+
+                        <td class="fw-bold">@o.TotalAmount.ToString("N0") đ</td>
+
+                        <td>
+                            <span class="badge @(o.PaymentStatus == "Paid" ? "bg-success" : "bg-secondary")">
+                                @(o.PaymentStatus == "Paid" ? "Đã TT" : "Chưa TT")
+                            </span>
+                            <div class="text-muted small">@o.PaymentMethod</div>
+                        </td>
+
+                        <td>
+                            @{
+                                var badge = o.Status switch
+                                {
+                                    "Pending" => "bg-warning text-dark",
+                                    "Processing" => "bg-primary",
+                                    "Completed" => "bg-success",
+                                    "Cancelled" => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                                var label = o.Status switch
+                                {
+                                    "Pending" => "Chờ xử lý",
+                                    "Processing" => "Đang làm",
+                                    "Completed" => "Hoàn thành",
+                                    "Cancelled" => "Đã huỷ",
+                                    _ => o.Status
+                                };
+                            }
+                            <span class="badge @badge">@label</span>
+                        </td>
+
+                        <td>
+                            <small class="text-muted">@o.OrderedAt.ToString("dd/MM HH:mm")</small>
+                        </td>
+
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center flex-wrap">
+
+                                @if (o.PaymentStatus == "Unpaid")
+                                {
+                                    <a asp-action="Payment" asp-route-id="@o.Id"
+                                       class="btn btn-sm btn-outline-success">Thanh toán</a>
+                                }
+
+                                @if (o.Status == "Pending")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@o.Id" />
+                                        <input type="hidden" name="status" value="Processing" />
+                                        <button class="btn btn-sm btn-outline-primary">Làm món</button>
+                                    </form>
+                                }
+
+                                @if (o.Status == "Processing")
+                                {
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@o.Id" />
+                                        <input type="hidden" name="status" value="Completed" />
+                                        <button class="btn btn-sm btn-outline-success">Xong</button>
+                                    </form>
+                                }
+
+                                @if (User.IsInRole("Manager") || User.IsInRole("Admin"))
+                                {
+                                    <form asp-action="Delete" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xoá đơn này?')">
+                                        <input type="hidden" name="id" value="@o.Id" />
+                                        <button class="btn btn-sm btn-outline-danger">Xoá</button>
+                                    </form>
+                                }
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+
+                @if (!orders.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            Chưa có đơn hàng nào
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,111 @@
+@model IEnumerable<MilkTeaShop.Models.Order>
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Lịch sử đơn hàng của tôi</h3>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-success rounded-pill px-4">+ Đặt thêm</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <div style="font-size:4rem"></div>
+        <h5 class="text-muted mt-3">Bạn chưa có đơn hàng nào</h5>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-success rounded-pill px-4 mt-3">Đặt hàng ngay</a>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var o in Model)
+        {
+            string borderColor = o.Status == "Pending" ? "border-warning" :
+            o.Status == "Processing" ? "border-primary" :
+            o.Status == "Completed" ? "border-success" :
+            o.Status == "Cancelled" ? "border-danger" : "border-secondary";
+
+            string statusLabel = o.Status == "Pending" ? "Chờ xác nhận" :
+            o.Status == "Processing" ? "Đang làm" :
+            o.Status == "Completed" ? "Hoàn thành" :
+            o.Status == "Cancelled" ? "Đã hủy" : o.Status;
+
+            string statusBadge = o.Status == "Pending" ? "bg-warning text-dark" :
+            o.Status == "Processing" ? "bg-primary" :
+            o.Status == "Completed" ? "bg-success" :
+            o.Status == "Cancelled" ? "bg-danger" : "bg-secondary";
+
+            <div class="col-12">
+                <div class="card shadow-sm border-2 @borderColor rounded-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+
+                            <div class="col-md-3">
+                                <div class="fw-bold text-success">@o.OrderCode</div>
+                                <small class="text-muted">@o.OrderedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+
+                            <div class="col-md-4">
+                                @foreach (var item in o.OrderItems)
+                                {
+                                    var tNames = string.Join(", ", item.OrderItemToppings.Select(t => t.Topping!.Name));
+
+                                    <div class="small">
+                                        @item.Product?.Name (@item.ProductSize?.SizeName) x@item.Quantity
+
+                                        @if (item.OrderItemToppings.Any())
+                                        {
+                                            <span class="text-muted"> + @tNames</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="col-md-2">
+                                <div class="fw-bold">@o.TotalAmount.ToString("N0") đ</div>
+                                <small class="text-muted">@(o.PaymentMethod == "Momo" ? "Momo" : "Tiền mặt")</small>
+
+                                @if (o.PaymentStatus == "Refunded")
+                                {
+                                    <br />
+
+                                    <span class="badge bg-info">Đã hoàn tiền</span>
+                                }
+                                else if (o.PaymentStatus == "Paid")
+                                {
+                                    <br />
+
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                }
+                                else
+                                {
+                                    <br />
+
+                                    <span class="badge bg-secondary">Chưa thanh toán</span>
+                                }
+                            </div>
+
+                            <div class="col-md-2">
+                                <span class="badge @statusBadge fs-6">@statusLabel</span>
+                            </div>
+
+                            <div class="col-md-1 text-end">
+                                <a asp-action="Track" asp-route-id="@o.Id" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                            </div>
+
+                        </div>
+
+                        @if (o.Status == "Cancelled" && !string.IsNullOrEmpty(o.CancelReason))
+                        {
+                            <div class="mt-2 small text-muted border-top pt-2">
+                                <strong>Lý do hủy:</strong> @o.CancelReason
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
